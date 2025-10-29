@@ -206,6 +206,7 @@ body {
 
 .item {
   background: white;
+  position: relative;
 }
 
 .item-image {
@@ -235,6 +236,7 @@ body {
   margin-bottom: 4px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2; /*다른 브라우저 호환도 챙기려면 표준 속성도 같이 써야함.*/
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -243,6 +245,37 @@ body {
   font-size: 14px;
   font-weight: 500;
   color: black;
+}
+
+.item-delete-btn {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+}
+
+.item-delete-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 1);
+  border-color: #ef4444;
+  transform: scale(1.1);
+}
+
+.item-delete-btn img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
 }
 
 /* 빈 상태 */

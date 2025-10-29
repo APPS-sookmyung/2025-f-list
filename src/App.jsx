@@ -14,7 +14,7 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 
 // 아이템 컴포넌트
-function Item({ brand, name, price, image }) {
+function Item({ id, brand, name, price, image, onDelete }) {
   return (
     <div className="item">
       <div className="item-image">
@@ -23,6 +23,13 @@ function Item({ brand, name, price, image }) {
       <p className="item-brand">{brand}</p>
       <p className="item-name">{name}</p>
       <p className="item-price">{price}</p>
+      <button
+        className="item-delete-btn"
+        onClick={() => onDelete(id)}
+        title="삭제"
+      >
+        <img src="/trash-2.svg" alt="삭제" />
+      </button>
     </div>
   );
 }
@@ -601,7 +608,7 @@ function App() {
     } catch (error) {
       console.error("로그인 실패:", error);
 
-      // 도메인 승인 오류인 경우 사용자에게 안내
+      // 도메인 승인 오류인 경우 사용자에게 안내하도록...?
       if (error.message.includes("도메인") && error.message.includes("승인")) {
         alert(
           `❌ ${error.message}\n\n해결 방법:\n1. Firebase Console (console.firebase.google.com) 접속\n2. f-list-455a9 프로젝트 선택\n3. Authentication → Settings → 승인된 도메인\n4. 현재 도메인 추가 후 다시 시도`
@@ -612,7 +619,7 @@ function App() {
     }
   };
 
-  // 아이템 추가
+  // 아이템 추가 함수
   const handleAddItem = async (itemData) => {
     if (!user) return;
 
@@ -643,6 +650,40 @@ function App() {
     } catch (error) {
       console.error("아이템 저장 실패:", error);
       alert("아이템 저장에 실패했습니다.");
+    }
+  };
+
+  // 아이템 삭제
+  const handleDeleteItem = async (itemId) => {
+    if (!user) return;
+
+    // 삭제 확인
+    if (!confirm("이 아이템을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      let updatedZips = zipsItems;
+      let updatedWishlist = wishlistItems;
+
+      if (activeTab === "zips") {
+        updatedZips = zipsItems.filter((item) => item.id !== itemId);
+        setZipsItems(updatedZips);
+      } else {
+        updatedWishlist = wishlistItems.filter((item) => item.id !== itemId);
+        setWishlistItems(updatedWishlist);
+      }
+
+      // Firebase에 저장
+      await saveUserItems(user.uid, {
+        zipsItems: updatedZips,
+        wishlistItems: updatedWishlist,
+      });
+
+      alert("아이템이 삭제되었습니다!");
+    } catch (error) {
+      console.error("아이템 삭제 실패:", error);
+      alert("아이템 삭제에 실패했습니다.");
     }
   };
 
@@ -764,7 +805,7 @@ function App() {
         ) : (
           <div className="items-grid">
             {currentItems.map((item) => (
-              <Item key={item.id} {...item} />
+              <Item key={item.id} {...item} onDelete={handleDeleteItem} />
             ))}
           </div>
         )}

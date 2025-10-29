@@ -261,15 +261,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 4px;
-  transition: all 0.2s ease;
   opacity: 0.7;
-}
-
-.item-delete-btn:hover {
-  opacity: 1;
-  background: rgba(255, 255, 255, 1);
-  border-color: #ef4444;
-  transform: scale(1.1);
 }
 
 .item-delete-btn img {
@@ -307,12 +299,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.floating-add-btn:hover {
-  background: #374151;
-  transform: scale(1.05);
-  transition: all 0.2s ease;
 }
 
 /* 모바일 화면에서 더 안전한 위치 */

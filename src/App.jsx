@@ -371,7 +371,6 @@ function AddItemModal({ isOpen, onClose, onAdd }) {
                   const numericValue = e.target.value.replace(/[^\d]/g, "");
                   handleChange("price", numericValue);
                 }}
-                placeholder="예: 52000"
                 required
               />
               <span className="price-suffix">won</span>

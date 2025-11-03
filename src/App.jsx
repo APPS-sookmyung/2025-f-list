@@ -309,6 +309,8 @@ function AddItemModal({ isOpen, onClose, onAdd }) {
     image: "",
   });
 
+  const fileInputRef = useRef(null);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onAdd({
@@ -323,6 +325,23 @@ function AddItemModal({ isOpen, onClose, onAdd }) {
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // <CHANGE> 파일 선택 버튼 클릭 처리
+  const handleImageFileSelect = () => {
+    fileInputRef.current.click();
+  };
+
+  // <CHANGE> 파일 선택시 이미지를 Data URL로 변환
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        handleChange("image", e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const formatPrice = (price) => {
@@ -377,16 +396,35 @@ function AddItemModal({ isOpen, onClose, onAdd }) {
             </div>
           </div>
           <div className="form-group">
-            <label className="form-label">이미지 URL</label>
-            <input
-              className="form-input"
-              type="url"
-              value={formData.image}
-              onChange={(e) => handleChange("image", e.target.value)}
-              placeholder="이미지 URL을 입력하세요"
-              required
-            />
+            <label className="form-label">이미지</label>
+            {/* <CHANGE> 이미지 입력 컨테이너로 URL 입력칸과 파일 선택 버튼 함께 배치 */}
+            <div className="image-input-container">
+              <input
+                className="form-input"
+                type="url"
+                value={formData.image}
+                onChange={(e) => handleChange("image", e.target.value)}
+                placeholder="이미지 URL을 입력하거나 파일을 선택하세요"
+                required
+              />
+              <button
+                type="button"
+                className="image-upload-btn"
+                onClick={handleImageFileSelect}
+                title="파일에서 선택"
+              >
+                <img src="/link.svg" alt="파일 선택" />
+              </button>
+            </div>
           </div>
+          {/* <CHANGE> 숨겨진 파일 입력 추가 */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={handleFileChange}
+          />
           <div className="form-buttons">
             <button
               type="button"

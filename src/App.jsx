@@ -127,28 +127,18 @@ function Profile({
       handleDescriptionSubmit();
     }
   };
-
   // 외부 클릭시 메뉴,닉네임,설명 닫기
   useEffect(() => {
     const handleClickOutside = (e) => {
       //메뉴 열려있고 && 프로필 사진 영역 아닌 곳 클릭시 메뉴 닫기
       if (showMenu && !e.target.closest(".profile-pic-container")) {
-        setShowMenu(false); //e.target: 내가 클릭한 요소, .closet(""): 클릭한 요소가 지정한 영역 안에 포함되는지 검사
-      }
-      //닉네임 수정 중이고, 닉네임 입력창 아닌 곳 클릭시 닉네임 저장,닫기
-      if (isEditingNickname && !e.target.closest(".nickname-edit")) {
-        handleNicknameSubmit();
-      }
-      //설명 수정 중이고, 설명 입력창 아닌 곳 클릭시 설명 저장,닫기
-      if (isEditingDescription && !e.target.closest(".description-edit")) {
-        handleDescriptionSubmit();
+        setShowMenu(false);
       }
     };
-    //웹페이지 전체에 "클릭" 이벤트 달기
+
     document.addEventListener("click", handleClickOutside);
-    //컴포넌트 사라질 때 이벤트 제거하기
     return () => document.removeEventListener("click", handleClickOutside);
-  }, [showMenu, isEditingNickname, isEditingDescription]);
+  }, [showMenu]);
 
   const canEdit = isLoggedIn;
 
@@ -190,10 +180,11 @@ function Profile({
                 color: "black",
                 border: "1px solid #d1d5db",
                 borderRadius: "4px",
-                padding: "2px 6px",
-                marginLeft: "2px",
+                padding: "1px 5px",
+                margin: "0",
                 outline: "none",
                 background: "white",
+                boxSizing: "border-box",
               }}
               maxLength={20}
             />

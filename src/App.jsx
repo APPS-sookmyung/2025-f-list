@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import heic2any from "heic2any";
 import {
   auth,
   signInWithGoogle,
@@ -324,14 +325,59 @@ function AddItemModal({ isOpen, onClose, onAdd }) {
   };
 
   // <CHANGE> 파일 선택시 이미지를 Data URL로 변환
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
+  const handleFileChange = async (e) => {
+    let file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      // HEIC 파일인지 확인
+      if (
+        file.type === "image/heic" ||
+        file.type === "image/heif" ||
+        file.name.toLowerCase().endsWith(".heic")
+      ) {
+        console.log("[v0] HEIC 파일 감지, JPEG로 변환 중...");
+
+        // HEIC를 JPEG로 변환
+        const convertedBlob = await heic2any({
+          blob: file,
+          toType: "image/jpeg",
+          quality: 0.8,
+        });
+
+        // Blob을 File로 변환
+        file = new File(
+          [convertedBlob],
+          file.name.replace(/\.heic$/i, ".jpg"),
+          {
+            type: "image/jpeg",
+          }
+        );
+      }
+
+      // 파일 크기 제한 (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert("파일 크기는 10MB 이하여야 합니다.");
+        return;
+      }
+
       const reader = new FileReader();
+
+      reader.onerror = () => {
+        alert("파일을 읽는 중 오류가 발생했습니다.");
+        console.error("[v0] FileReader error:", reader.error);
+      };
+
       reader.onload = (e) => {
         handleChange("image", e.target.result);
       };
+
       reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("[v0] 이미지 처리 오류:", error);
+      alert(
+        "이미지를 처리하는 중 오류가 발생했습니다. HEIC 파일은 지원되지 않을 수 있습니다."
+      );
     }
   };
 

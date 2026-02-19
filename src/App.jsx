@@ -15,14 +15,26 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 
 // 아이템 컴포넌트
-function Item({ id, brand, name, price, image, onDelete }) {
+function Item({ id, brand, name, price, image, onDelete, highlightField }) {
   return (
     <div className="item">
       <div className="item-image">
         <img src={image || ""} alt={name} />
       </div>
-      <p className="item-brand">{brand}</p>
-      <p className="item-name">{name}</p>
+      <p className="item-brand">
+        {highlightField === "brand" ? (
+          <span className="search-highlight">{brand}</span>
+        ) : (
+          brand
+        )}
+      </p>
+      <p className="item-name">
+        {highlightField === "name" ? (
+          <span className="search-highlight">{name}</span>
+        ) : (
+          name
+        )}
+      </p>
       <p className="item-price">{price}</p>
       <button
         className="item-delete-btn"
@@ -541,6 +553,10 @@ function App() {
   const [zipsItems, setZipsItems] = useState([]);
   const [wishlistItems, setWishlistItems] = useState([]);
   const currentItems = activeTab === "zips" ? zipsItems : wishlistItems;
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [currentResultIndex, setCurrentResultIndex] = useState(0);
 
   // 페이지 로드시 리다이렉트 결과 확인 (수정)
   useEffect(() => {
@@ -770,6 +786,80 @@ function App() {
     setShowAddModal(true);
   };
 
+  // 검색 실행
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+
+    if (query.trim() === "") {
+      setSearchResults([]);
+      setCurrentResultIndex(0);
+      return;
+    }
+
+    const results = [];
+    currentItems.forEach((item, index) => {
+      if (item.brand.toLowerCase() === query.toLowerCase()) {
+        results.push({ index, field: "brand" });
+      } else if (item.name.toLowerCase() === query.toLowerCase()) {
+        results.push({ index, field: "name" });
+      }
+    });
+
+    setSearchResults(results);
+    setCurrentResultIndex(0);
+
+    if (results.length > 0) {
+      scrollToItem(results[0].index);
+    }
+  };
+
+  // 다음 검색 결과로 이동 (아래 화살표)
+  const handleNextResult = () => {
+    if (searchResults.length === 0) return;
+    const nextIndex = (currentResultIndex + 1) % searchResults.length;
+    setCurrentResultIndex(nextIndex);
+    scrollToItem(searchResults[nextIndex].index);
+  };
+
+  // 이전 검색 결과로 이동 (위 화살표)
+  const handlePrevResult = () => {
+    if (searchResults.length === 0) return;
+    const prevIndex =
+      (currentResultIndex - 1 + searchResults.length) % searchResults.length;
+    setCurrentResultIndex(prevIndex);
+    scrollToItem(searchResults[prevIndex].index);
+  };
+
+  // 해당 아이템으로 스크롤
+  const scrollToItem = (itemIndex) => {
+    const itemElements = document.querySelectorAll(".item");
+    if (itemElements[itemIndex]) {
+      itemElements[itemIndex].scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  };
+
+  // 검색 닫기
+  const handleCloseSearch = () => {
+    setIsSearchOpen(false);
+    setSearchQuery("");
+    setSearchResults([]);
+    setCurrentResultIndex(0);
+  };
+
+  // 검색 키보드 이벤트
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Enter") {
+      if (searchResults.length > 1) {
+        handleNextResult();
+      }
+    }
+    if (e.key === "Escape") {
+      handleCloseSearch();
+    }
+  };
   //로딩 중일때 해결 -> 시크릿모드로 접속, 인터넷 캐시 삭제
   if (loading) {
     return (
@@ -794,12 +884,97 @@ function App() {
     <div className="app">
       {/* 헤더 */}
       <div className="header">
-        <h1>F-list</h1>
+        {isSearchOpen ? (
+          <>
+            <div className="search-bar">
+              <input
+                type="text"
+                className="search-input"
+                placeholder="브랜드 또는 상품명 입력..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
+                autoFocus
+              />
+              {searchResults.length > 0 ? (
+                <div className="search-result-nav">
+                  <span className="search-count">
+                    {currentResultIndex + 1}/{searchResults.length}
+                  </span>
+                  <div className="search-arrows">
+                    <button
+                      className="search-arrow-btn"
+                      onClick={handlePrevResult}
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="18 15 12 9 6 15"></polyline>
+                      </svg>
+                    </button>
+                    <button
+                      className="search-arrow-btn"
+                      onClick={handleNextResult}
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ) : searchQuery ? (
+                <button className="search-icon-btn" onClick={handleCloseSearch}>
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#9ca3af"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              ) : (
+                <button className="search-icon-btn" onClick={handleCloseSearch}>
+                  <img src="/search.svg" alt="검색" width="18" height="18" />
+                </button>
+              )}
+            </div>
+          </>
+        ) : (
+          <h1>F-list</h1>
+        )}
         <div className="header-buttons">
-          {isLoggedIn}
+          {!isSearchOpen && (
+            <button
+              className="search-btn"
+              onClick={() => setIsSearchOpen(true)}
+            >
+              <img src="/search.svg" alt="검색" width="20" height="20" />
+            </button>
+          )}
           <button className="login-btn" onClick={handleLogin}>
             {isLoggedIn ? (
-              // 열린 자물쇠 (로그인 상태)
               <svg
                 className="icon"
                 fill="none"
@@ -823,7 +998,6 @@ function App() {
                 />
               </svg>
             ) : (
-              // 닫힌 자물쇠 (로그아웃 상태)
               <svg
                 className="icon"
                 fill="none"
@@ -878,9 +1052,25 @@ function App() {
           </div>
         ) : (
           <div className="items-grid">
-            {currentItems.map((item) => (
-              <Item key={item.id} {...item} onDelete={handleDeleteItem} />
-            ))}
+            {currentItems.map((item, index) => {
+              const matchedResult = searchResults.find(
+                (r) => r.index === index
+              );
+              return (
+                <Item
+                  key={item.id}
+                  {...item}
+                  onDelete={handleDeleteItem}
+                  highlightField={
+                    matchedResult &&
+                    matchedResult.index ===
+                      searchResults[currentResultIndex]?.index
+                      ? matchedResult.field
+                      : null
+                  }
+                />
+              );
+            })}
           </div>
         )}
 

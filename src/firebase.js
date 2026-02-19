@@ -69,6 +69,10 @@ const isDevelopment = () => {
   return import.meta.env.DEV || window.location.hostname === "localhost";
 };
 
+if (isDevelopment()) {
+  console.log("개발 환경입니다.");
+}
+
 // 인증 함수들
 export const signInWithGoogle = async () => {
   try {
